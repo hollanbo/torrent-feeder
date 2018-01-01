@@ -94,7 +94,14 @@ function prepareRequest () {
 function sendRequest () {
   json=$1
 
-  response=$(curl "http://192.168.1.77:9091/transmission/rpc" -i -H "Content-Type: application/json" -H "X-Transmission-Session-Id: mr4igRej1QJzftS63DZ3dfvPZCrSlYt1Dl4N5qlHlQQeHNSX" --data-raw "$json")
+  response=$(curl "$TORRENT_CLIENT_HOST" -i -H "Content-Type: application/json" -vv -H "X-Transmission-Session-Id: $csrf" --data-raw "$json")
+
+
+  curl_exit_code=$?
+  if [ $curl_exit_code -gt 0 ]
+  then
+    exit 1
+  fi
 
   grep -Fq "HTTP/1.1 409 Conflict" <<< "$response"
   csrf_error=$?
@@ -115,8 +122,11 @@ function updateCsrf () {
     if [[ $line == *"X-Transmission-Session-Id"* ]]
     then
       csrf=${line##$needle}
-      echo $csrf
-      sendRequest json
+
+      # Some bullshit invisible character at
+      # the end of the string has kept me up for a while
+      csrf=${csrf//[^[:alnum:]]/}
+      sendRequest "$json"
       return
     fi
   done <<< "$response"
