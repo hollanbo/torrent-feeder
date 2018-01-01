@@ -6,7 +6,7 @@ processed="$location/processed"
 xml="$location/feed.xml"
 #
 # Import config file
-source "$location/config.sh"
+source "$location/config"
 
 # Global csrf var
 csrf=
