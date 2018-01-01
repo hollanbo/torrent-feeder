@@ -27,27 +27,27 @@ function parseXmlFeed() {
     if [ "$entity" == "item" ]; then
       is_item=true
       unset  data
-      declare -A data
     elif [ "$entity" == "/item" ]; then
       is_item=false
-      processItem $data
+
+      processItem "${data[@]}"
     fi
 
     if [ is_item ]; then
       case "$entity" in
         "tv:raw_title")
-            data[title]=$content
+            data[0]="$content"
             ;;
 
         "link")
-            data["link"]=$content
+            data[1]="$content"
             ;;
 
         "tv:info_hash")
-            data["hash"]=$content
+            data[2]="$content"
             ;;
         "tv:show_name")
-            data[show_name]=$content
+            data[3]="$content"
             ;;
       esac
     fi
@@ -63,26 +63,26 @@ function read_dom () {
 function processItem () {
   data=$1
 
-  grep -Fxq "${data[hash]}" processed
+  grep -Fxq "${data[2]}" processed
   hash_found=$?
 
   if [ $hash_found -gt 0 ]
   then
-      prepareRequest $data
-      echo ${data[hash]} >> processed
+      prepareRequest "${data[@]}"
+      echo ${data[2]} >> processed
   fi
 
 }
 
 function prepareRequest () {
   data=$1
-  ep_number=$(echo "${data[title]}" | sed -n 's/.*\([sS][0-9][0-9][eE][0-9][0-9]*\).*/\1/p')
+  ep_number=$(echo "${data[0]}" | sed -n 's/.*\([sS][0-9][0-9][eE][0-9][0-9]*\).*/\1/p')
   season=${ep_number:1:2}
 
   json="{
     \"method\": \"torrent-add\",
     \"arguments\": {
-      \"filename\": \"${data[link]}\",
+      \"filename\": \"${data[1]}\",
       \"paused\": \"false\"
     }
   }"
@@ -94,7 +94,7 @@ function prepareRequest () {
 function sendRequest () {
   json=$1
 
-  response=$(curl "$TORRENT_CLIENT_HOST" -i -H "Content-Type: application/json" -vv -H "X-Transmission-Session-Id: $csrf" --data-raw "$json")
+  response=$(curl "$TORRENT_CLIENT_HOST" -i -H "Content-Type: application/json" -H "X-Transmission-Session-Id: $csrf" --data-raw "$json")
 
 
   curl_exit_code=$?
