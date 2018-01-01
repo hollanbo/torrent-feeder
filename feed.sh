@@ -63,7 +63,7 @@ function read_dom () {
 function processItem () {
   data=$1
 
-  grep -Fxq "${data[2]}" processed
+  grep -Fq "${data[2]}" processed
   hash_found=$?
 
   if [ $hash_found -gt 0 ]
