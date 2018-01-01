@@ -1,7 +1,12 @@
 #!/bin/bash
 #
+# Required files locations
+location=`dirname $0`
+processed="$location/processed"
+xml="$location/feed.xml"
+#
 # Import config file
-source config.sh
+source "$location/config.sh"
 
 # Global csrf var
 csrf=
@@ -15,7 +20,7 @@ function getXml() {
   count=0
   while [ "x${FEEDS[count]}" != "x" ]
   do
-    curl ${FEEDS[count]} -o feed.xml
+    curl ${FEEDS[count]} -o $xml
     parseXmlFeed
     count=$(( $count + 1 ))
   done
@@ -51,7 +56,7 @@ function parseXmlFeed() {
             ;;
       esac
     fi
-  done < feed.xml
+  done < $xml
 
 }
 
@@ -63,13 +68,13 @@ function read_dom () {
 function processItem () {
   data=$1
 
-  grep -Fq "${data[2]}" processed
+  grep -Fq "${data[2]}" $processed
   hash_found=$?
 
   if [ $hash_found -gt 0 ]
   then
       prepareRequest "${data[@]}"
-      echo ${data[2]} >> processed
+      echo ${data[2]} >> $processed
   fi
 
 }
