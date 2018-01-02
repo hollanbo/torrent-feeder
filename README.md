@@ -21,3 +21,5 @@ Currently it only supports ShowRSS.info and Transmission connection.
 - Organise files in your configured structure
 - Cleanup old logs based on your config
 - Notifications of added torrents?
+- Add support for other feeds
+- Add support for other BT clients
